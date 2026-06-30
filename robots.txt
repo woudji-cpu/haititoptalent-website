@@ -1,0 +1,11 @@
+# robots.txt — Haiti Top Talent
+# Autoriser tous les robots à indexer tout le site
+User-agent: *
+Allow: /
+
+# Autoriser Googlebot explicitement
+User-agent: Googlebot
+Allow: /
+
+# Sitemap XML
+Sitemap: https://haititoptalent.com/sitemap.xml
