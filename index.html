@@ -740,18 +740,90 @@
   }
 
   .stat-card {
+    display: block;
     background: var(--glass);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
-    padding: 28px;
+    padding: 28px 20px;
     text-align: center;
     transition: all var(--transition);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    isolation: isolate;
   }
-  .stat-card:hover {
+  /* Subtle "clickable" arrow that appears on hover — modern 2026 affordance */
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 18px;
+    height: 18px;
+    background: currentColor;
+    color: var(--gold);
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M5 12h14M13 6l6 6-6 6' stroke='currentColor' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / contain no-repeat;
+    mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M5 12h14M13 6l6 6-6 6' stroke='currentColor' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / contain no-repeat;
+    opacity: 0;
+    transform: translate(-6px, 6px);
+    transition: opacity var(--transition), transform var(--transition);
+    z-index: 2;
+  }
+  .stat-card:hover::after,
+  .stat-card:focus-visible::after {
+    opacity: 0.7;
+    transform: translate(0, 0);
+  }
+  .stat-card:hover,
+  .stat-card:focus-visible {
     border-color: var(--gold);
     box-shadow: var(--glow-gold);
     transform: translateY(-4px);
+    outline: none;
+  }
+  .stat-card:focus-visible {
+    box-shadow: var(--glow-gold), 0 0 0 3px rgba(201,168,76,0.4);
+  }
+
+  /* Hidden hint label revealed on hover for clarity (no AI "click here" text) */
+  .stat-card-hint {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 12px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity var(--transition), transform var(--transition);
+    font-weight: 600;
+  }
+  .stat-card:hover .stat-card-hint,
+  .stat-card:focus-visible .stat-card-hint {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Highlight pulse when scrolled-to via stat card click */
+  .highlight-pulse {
+    animation: highlightPulse 1.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes highlightPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(201,168,76,0.6); }
+    40%  { box-shadow: 0 0 0 12px rgba(201,168,76,0.25), 0 0 60px rgba(201,168,76,0.4); }
+    100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+  }
+  /* For sections (not cards), use an outline pulse instead */
+  section.highlight-pulse,
+  div.highlight-pulse {
+    outline: 2px solid var(--gold);
+    outline-offset: 4px;
+    border-radius: var(--radius);
   }
 
   .stat-number {
@@ -979,28 +1051,42 @@
     box-shadow: 0 40px 100px rgba(0,0,0,0.6);
   }
 
-  /* Lead card — most prominent */
+  /* Lead card — most prominent (toned down, doesn't bleed over text) */
   .jury-card.lead {
-    border-color: var(--gold);
-    box-shadow: 0 0 40px rgba(201,168,76,0.2), 0 0 80px rgba(201,168,76,0.08);
+    border-color: rgba(201,168,76,0.4);
+    box-shadow: 0 0 24px rgba(201,168,76,0.1), 0 0 50px rgba(201,168,76,0.04);
   }
   .jury-card.lead:hover {
-    box-shadow: 0 0 60px rgba(201,168,76,0.4), 0 40px 100px rgba(0,0,0,0.6);
+    box-shadow: 0 0 40px rgba(201,168,76,0.25), 0 40px 100px rgba(0,0,0,0.6);
   }
 
-  /* Animated rotating conic-gradient border */
+  /* Subtle rotating conic-gradient border — slowed + softened so the
+     text stays readable. Pink/red reduced to a whisper of color. */
   .jury-card.lead::before {
     content: '';
     position: absolute;
-    inset: -2px;
-    border-radius: 22px;
-    background: conic-gradient(from 0deg, var(--gold), var(--red), var(--gold-light), var(--gold));
+    inset: -1px;
+    border-radius: 21px;
+    background: conic-gradient(
+      from 0deg,
+      rgba(201,168,76,0.5) 0deg,
+      rgba(201,168,76,0.15) 90deg,
+      rgba(215,38,56,0.18) 180deg,
+      rgba(201,168,76,0.15) 270deg,
+      rgba(201,168,76,0.5) 360deg
+    );
     z-index: -1;
-    animation: rotateBorder 4s linear infinite;
+    animation: rotateBorder 14s linear infinite;
+    opacity: 0.65;
+    filter: blur(0.5px);
   }
   @keyframes rotateBorder {
-    0%   { transform: rotate(0deg) scale(1.01); }
-    100% { transform: rotate(360deg) scale(1.01); }
+    0%   { transform: rotate(0deg) scale(1.005); }
+    100% { transform: rotate(360deg) scale(1.005); }
+  }
+  /* Respect users who prefer reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .jury-card.lead::before { animation: none; }
   }
 
   /* @starting-style for jury card hover overlay */
@@ -1817,23 +1903,27 @@ Des auditions départementales à la grande finale nationale, chaque étape est 
         Et ce n’est que le début. <strong>Haiti Top Talent</strong> s’étendra bientôt aux communautés <strong>francophones et anglophones</strong> du monde entier. La diaspora haïtienne à Montréal, à Paris, à Miami, à New York aura sa propre scène. Parce que <strong>le talent haïtien ne connaît pas de frontière</strong>   et il est temps que <strong>le monde entier</strong> le découvre.
       </p>
 
-      <div class="about-stats reveal reveal-delay-4">
-        <div class="stat-card">
+      <div class="about-stats reveal reveal-delay-4" role="list">
+        <a class="stat-card" href="#about-departments" data-scroll-target="about-departments" role="listitem">
           <span class="stat-number">10</span>
           <span class="stat-label">Départements</span>
-        </div>
-        <div class="stat-card">
+          <span class="stat-card-hint">Voir les 10 départements</span>
+        </a>
+        <a class="stat-card" href="#jury" data-scroll-target="jury" role="listitem">
           <span class="stat-number">3</span>
           <span class="stat-label">Juges d'Exception</span>
-        </div>
-        <div class="stat-card">
+          <span class="stat-card-hint">Découvrir le jury</span>
+        </a>
+        <a class="stat-card" href="#inscription" data-scroll-target="inscription" role="listitem">
           <span class="stat-number">1</span>
           <span class="stat-label">Grande Finale</span>
-        </div>
-        <div class="stat-card">
+          <span class="stat-card-hint">Réserver ma place</span>
+        </a>
+        <a class="stat-card" href="#inscription" data-scroll-target="inscription" role="listitem">
           <span class="stat-number">∞</span>
           <span class="stat-label">Rêves à Réaliser</span>
-        </div>
+          <span class="stat-card-hint">Inscrire ma voix</span>
+        </a>
       </div>
 
       <div class="expansion-banner reveal">
@@ -1843,7 +1933,7 @@ Des auditions départementales à la grande finale nationale, chaque étape est 
 
     <div class="about-visual reveal reveal-delay-2">
       <div class="about-visual-inner">
-        <div class="about-departments">
+        <div class="about-departments" id="about-departments" tabindex="-1">
           <div class="dept-item"><span class="dept-dot"></span> Ouest</div>
           <div class="dept-item"><span class="dept-dot"></span> Artibonite</div>
           <div class="dept-item"><span class="dept-dot"></span> Nord</div>
@@ -2137,7 +2227,7 @@ S'inscrire à « Haiti Top Talent » représente un petit investissement qui vou
     <div class="checkbox-field full-width">
       <input type="checkbox" id="privacy-check" name="privacy_accepted" required>
       <label for="privacy-check">
-        J'accepte sans réserve les <a href="confidentialite.html" target="_blank" style="color:var(--gold); text-decoration:underline;">16 articles de la politique de confidentialité</a> de Haiti Top Talent.
+        J'accepte sans réserve les <a href="confidentialite.html" target="_blank" style="color:var(--gold); text-decoration:underline;">17 articles de la politique de confidentialité</a> de Haiti Top Talent.
       </label>
     </div>
 
@@ -2308,17 +2398,14 @@ S'inscrire à « Haiti Top Talent » représente un petit investissement qui vou
   <div class="footer-bottom">
     <span class="footer-copy">&copy; 2026 Haiti Top Talent. Tous droits réservés.</span>
     <div class="footer-socials">
-      <a href="#" aria-label="Facebook">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
-      </a>
-      <a href="#" aria-label="Instagram">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-      </a>
-      <a href="#" aria-label="YouTube">
+      <a href="https://www.youtube.com/@HaitiTopTalent" target="_blank" rel="noopener" aria-label="YouTube — Haiti Top Talent" title="YouTube — Haiti Top Talent">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.3 31.3 0 000 12a31.3 31.3 0 00.5 5.8 3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1A31.3 31.3 0 0024 12a31.3 31.3 0 00-.5-5.8zM9.5 15.6V8.4L16 12l-6.5 3.6z"/></svg>
       </a>
-      <a href="#" aria-label="TikTok">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.3 5.3A4.5 4.5 0 0116.5 4V0h-3.8v16.5a2.8 2.8 0 01-2.8 2.5 2.8 2.8 0 01-2.8-2.8 2.8 2.8 0 012.8-2.8c.3 0 .5 0 .8.1v-3.9a6.6 6.6 0 00-.8 0A6.6 6.6 0 003.3 16.2 6.6 6.6 0 009.9 23a6.6 6.6 0 006.6-6.6V8.2a8.3 8.3 0 004.8 1.5V5.9a4.5 4.5 0 01-2-.6z"/></svg>
+      <a href="https://wa.me/14388337062" target="_blank" rel="noopener" aria-label="WhatsApp — Haiti Top Talent" title="WhatsApp — Haiti Top Talent">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5 4.5.7.3 1.2.5 1.7.6.7.2 1.3.2 1.8.1.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 00-8.6 15l-1.4 5 5.1-1.3A10 10 0 1012 2z"/></svg>
+      </a>
+      <a href="mailto:contact@haititoptalent.com" aria-label="Email — Haiti Top Talent" title="Email — Haiti Top Talent">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 6l10 7L22 6"/></svg>
       </a>
     </div>
     <a href="https://wa.me/18573018431" target="_blank" rel="noopener" class="footer-credit">
@@ -2572,7 +2659,7 @@ S'inscrire à « Haiti Top Talent » représente un petit investissement qui vou
       const privacyCheck = document.getElementById('privacy-check');
       const rulesCheck = document.getElementById('rules-check');
       if (privacyCheck && !privacyCheck.checked) {
-        errorMsg.innerHTML = "<strong>Attention :</strong> Vous devez accepter les 16 articles de la politique de confidentialité pour continuer.";
+        errorMsg.innerHTML = "<strong>Attention :</strong> Vous devez accepter les 17 articles de la politique de confidentialité pour continuer.";
         errorMsg.style.display = 'block';
         errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
@@ -2670,15 +2757,53 @@ S'inscrire à « Haiti Top Talent » représente un petit investissement qui vou
 
   /* ──────────────────────────────────────
      SMOOTH SCROLL — Enhanced for anchor links
+     + Highlight pulse on stat-card click targets
+     + Nav offset so sections aren't hidden behind sticky nav
      ────────────────────────────────────── */
+  const NAV_HEIGHT = 80; // matches the sticky nav height
+
+  function highlightTarget(el) {
+    if (!el) return;
+    el.classList.remove('highlight-pulse');
+    // Force reflow so the animation can restart
+    void el.offsetWidth;
+    el.classList.add('highlight-pulse');
+    // Clean up after the animation finishes
+    setTimeout(() => el.classList.remove('highlight-pulse'), 1800);
+  }
+
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', (e) => {
       const targetId = anchor.getAttribute('href');
-      if (targetId === '#') return;
+      if (targetId === '#' || targetId.length < 2) return;
       const target = document.querySelector(targetId);
       if (target) {
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Scroll with nav offset
+        const rect = target.getBoundingClientRect();
+        const top = rect.top + window.scrollY - NAV_HEIGHT;
+        window.scrollTo({ top, behavior: 'smooth' });
+        // Highlight the target (works for sections and the departments div)
+        highlightTarget(target);
+        // Update the URL hash without jumping
+        history.pushState(null, '', targetId);
+      }
+    });
+  });
+
+  /* ──────────────────────────────────────
+     STAT CARDS — Extra affordance
+     The cards are <a> tags so they scroll naturally, but we also
+     switch the registration tab to "artist" when a finale/rêves
+     card is clicked (since #inscription defaults to institution tab).
+     ────────────────────────────────────── */
+  document.querySelectorAll('.stat-card[data-scroll-target="inscription"]').forEach(card => {
+    card.addEventListener('click', () => {
+      // Switch to artist tab so the user lands on the talent form
+      const artistTab = document.getElementById('tab-artist');
+      if (artistTab && !artistTab.classList.contains('active')) {
+        // Small delay so the scroll starts first, then the tab flips
+        setTimeout(() => artistTab.click(), 350);
       }
     });
   });
@@ -2746,17 +2871,14 @@ S'inscrire à « Haiti Top Talent » représente un petit investissement qui vou
   <div class="footer-bottom">
     <span class="footer-copy">&copy; 2026 Haiti Top Talent. Tous droits réservés.</span>
     <div class="footer-socials">
-      <a href="#" aria-label="Facebook">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
-      </a>
-      <a href="#" aria-label="Instagram">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-      </a>
-      <a href="#" aria-label="YouTube">
+      <a href="https://www.youtube.com/@HaitiTopTalent" target="_blank" rel="noopener" aria-label="YouTube — Haiti Top Talent" title="YouTube — Haiti Top Talent">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.3 31.3 0 000 12a31.3 31.3 0 00.5 5.8 3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1A31.3 31.3 0 0024 12a31.3 31.3 0 00-.5-5.8zM9.5 15.6V8.4L16 12l-6.5 3.6z"/></svg>
       </a>
-      <a href="#" aria-label="TikTok">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.3 5.3A4.5 4.5 0 0116.5 4V0h-3.8v16.5a2.8 2.8 0 01-2.8 2.5 2.8 2.8 0 01-2.8-2.8 2.8 2.8 0 012.8-2.8c.3 0 .5 0 .8.1v-3.9a6.6 6.6 0 00-.8 0A6.6 6.6 0 003.3 16.2 6.6 6.6 0 009.9 23a6.6 6.6 0 006.6-6.6V8.2a8.3 8.3 0 004.8 1.5V5.9a4.5 4.5 0 01-2-.6z"/></svg>
+      <a href="https://wa.me/18573018431" target="_blank" rel="noopener" aria-label="WhatsApp — Haiti Top Talent" title="WhatsApp — Haiti Top Talent">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5 4.5.7.3 1.2.5 1.7.6.7.2 1.3.2 1.8.1.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 00-8.6 15l-1.4 5 5.1-1.3A10 10 0 1012 2z"/></svg>
+      </a>
+      <a href="mailto:contact@haititoptalent.com" aria-label="Email — Haiti Top Talent" title="Email — Haiti Top Talent">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 6l10 7L22 6"/></svg>
       </a>
     </div>
     <a href="https://wa.me/18573018431" target="_blank" rel="noopener" class="footer-credit">
@@ -3010,7 +3132,7 @@ S'inscrire à « Haiti Top Talent » représente un petit investissement qui vou
       const privacyCheck = document.getElementById('privacy-check');
       const rulesCheck = document.getElementById('rules-check');
       if (privacyCheck && !privacyCheck.checked) {
-        errorMsg.innerHTML = "<strong>Attention :</strong> Vous devez accepter les 16 articles de la politique de confidentialité pour continuer.";
+        errorMsg.innerHTML = "<strong>Attention :</strong> Vous devez accepter les 17 articles de la politique de confidentialité pour continuer.";
         errorMsg.style.display = 'block';
         errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
@@ -3108,15 +3230,53 @@ S'inscrire à « Haiti Top Talent » représente un petit investissement qui vou
 
   /* ──────────────────────────────────────
      SMOOTH SCROLL — Enhanced for anchor links
+     + Highlight pulse on stat-card click targets
+     + Nav offset so sections aren't hidden behind sticky nav
      ────────────────────────────────────── */
+  const NAV_HEIGHT = 80; // matches the sticky nav height
+
+  function highlightTarget(el) {
+    if (!el) return;
+    el.classList.remove('highlight-pulse');
+    // Force reflow so the animation can restart
+    void el.offsetWidth;
+    el.classList.add('highlight-pulse');
+    // Clean up after the animation finishes
+    setTimeout(() => el.classList.remove('highlight-pulse'), 1800);
+  }
+
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', (e) => {
       const targetId = anchor.getAttribute('href');
-      if (targetId === '#') return;
+      if (targetId === '#' || targetId.length < 2) return;
       const target = document.querySelector(targetId);
       if (target) {
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Scroll with nav offset
+        const rect = target.getBoundingClientRect();
+        const top = rect.top + window.scrollY - NAV_HEIGHT;
+        window.scrollTo({ top, behavior: 'smooth' });
+        // Highlight the target (works for sections and the departments div)
+        highlightTarget(target);
+        // Update the URL hash without jumping
+        history.pushState(null, '', targetId);
+      }
+    });
+  });
+
+  /* ──────────────────────────────────────
+     STAT CARDS — Extra affordance
+     The cards are <a> tags so they scroll naturally, but we also
+     switch the registration tab to "artist" when a finale/rêves
+     card is clicked (since #inscription defaults to institution tab).
+     ────────────────────────────────────── */
+  document.querySelectorAll('.stat-card[data-scroll-target="inscription"]').forEach(card => {
+    card.addEventListener('click', () => {
+      // Switch to artist tab so the user lands on the talent form
+      const artistTab = document.getElementById('tab-artist');
+      if (artistTab && !artistTab.classList.contains('active')) {
+        // Small delay so the scroll starts first, then the tab flips
+        setTimeout(() => artistTab.click(), 350);
       }
     });
   });
